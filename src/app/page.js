@@ -86,7 +86,20 @@ const RootPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/40 p-8">
+    <div className="min-h-screen flex flex-col gap-10 bg-muted/40 p-8">
+
+<header className='flex items-center justify-between border-b-1 pb-5 border-gray-600'>
+  <h1 className="text-2xl font-bold text-primary">Logo</h1>
+  <p className="flex items-center gap-2 font-semibold">
+    <span className="relative flex h-3 w-3">
+      <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+    </span>
+    Playing: 123
+  </p>
+</header>
+
+
       <div className="font-medium w-full max-w-lg">
         <div className="space-y-5">
           {/* Image */}
