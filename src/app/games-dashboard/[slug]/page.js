@@ -73,7 +73,11 @@ export default function GamePage() {
               userImage={kid.pictureUrl}
               isPlayedInitially={currentProgress?.played || false}
               initialStars={
-                currentProgress ? currentProgress.score / 1000 : 0
+                currentProgress
+                  ? !currentProgress?.played
+                    ? 0
+                    : currentProgress.score / 1000
+                  : 0
               }
             />
           );

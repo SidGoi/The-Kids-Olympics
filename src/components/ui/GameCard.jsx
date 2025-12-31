@@ -1,18 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Added initialStars to props
 export default function GameCard({ kidId, userName, userImage, sabhaName, gameName, isPlayedInitially, initialStars = 0 }) {
   
-  // Initialize rating with the stars already saved in the database
+  // Initialize state
   const [rating, setRating] = useState(initialStars); 
-  const [isLoading, setIsLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(isPlayedInitially);
+  const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // --- THE FIX: Sync state when props change ---
+  useEffect(() => {
+    // If it's a replay (Played = false but Score > 0), you might want to:
+    // Option A: Show the previous score (keep this line)
+    setRating(initialStars);
+    
+    // Option B: Force stars to 0 for replays so they HAVE to play again? 
+    // If so, use: setRating(isPlayedInitially ? initialStars : 0);
+
+    setIsCompleted(isPlayedInitially);
+  }, [initialStars, isPlayedInitially, kidId]); 
+  // ---------------------------------------------
+
   const handleStarClick = (index) => {
-    // Keep this check so users can't change the rating once it's locked
     if (isCompleted || isLoading) return;
     setRating(prevRating => (prevRating === index ? 0 : index));
   };
@@ -81,14 +92,18 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
           </div>
 
           <div className="flex items-center gap-4">
+
+
+            
             <div className="flex items-center gap-0.5" role="img">
               {[1, 2, 3].map((star) => (
                 <button 
                   key={star} 
                   onClick={() => handleStarClick(star)} 
                   disabled={isCompleted || isLoading}
-                  // This line ensures stars remain pink if they match the saved rating
-                  className={`transition-all duration-200 ${!isCompleted && !isLoading ? 'hover:scale-110 active:scale-90' : 'cursor-default'} ${star <= rating ? 'text-pink-500' : 'text-gray-200'}`}
+                  className={`transition-all duration-200 outline-none
+                    ${!isCompleted && !isLoading ? 'hover:scale-110 active:scale-90' : 'cursor-default'} 
+                    ${star <= rating ? 'text-pink-500' : 'text-gray-200'}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
                     <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
@@ -119,4 +134,4 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
       </div>
     </div>
   );
-}
+} 
