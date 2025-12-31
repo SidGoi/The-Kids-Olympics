@@ -2,6 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+// 1. Import Framer Motion
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
+
+// --- Helper Component for Smooth Numbers ---
+function AnimatedCounter({ value }) {
+  const spring = useSpring(value, { mass: 0.8, stiffness: 75, damping: 15 });
+  const display = useTransform(spring, (current) => Math.round(current));
+
+  useEffect(() => {
+    spring.set(value);
+  }, [value, spring]);
+
+  return <motion.span>{display}</motion.span>;
+}
 
 export default function LeaderboardPage() {
   const [kids, setKids] = useState([]);
@@ -12,16 +26,12 @@ export default function LeaderboardPage() {
       const res = await fetch("/api/balak/all");
       const json = await res.json();
       if (json.success) {
-        // --- Age Advantage Sorting Logic ---
         const sorted = [...json.kids].sort((a, b) => {
-          // 1. First, compare total scores (Descending)
           if (b.totalScore !== a.totalScore) {
             return b.totalScore - a.totalScore;
           }
-          // 2. If scores are EQUAL, prioritize the younger child (Ascending Age)
           return a.age - b.age;
         });
-        
         setKids(sorted);
       }
     } catch (error) {
@@ -37,166 +47,199 @@ export default function LeaderboardPage() {
     return () => clearInterval(liveInterval);
   }, []);
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-12 h-12 border-4 border-pink-100 border-t-pink-500 rounded-full animate-spin"></div>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFCFD]">
+        <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      </div>
+    );
 
   const topThree = [kids[0] || null, kids[1] || null, kids[2] || null];
   const otherPlayers = kids.slice(3);
 
   return (
-    <div className="min-h-screen bg-[#FDFCFD] text-slate-800 font-sans overflow-x-hidden">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-40">
-        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-100 blur-[120px] rounded-full"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-50 blur-[120px] rounded-full"></div>
-      </div>
+    <div className="font-primary h-screen text-slate-800 font-sans p-4 md:p-8">
+      <Image
+        src={"/fairbg.jpg"}
+        alt="bgImage"
+        height={500}
+        width={500}
+        className="h-screen w-screen object-cover fixed top-0 left-0 -z-10"
+      />
 
-      <div className="relative max-w-7xl mx-auto p-4 md:p-10">
-        <header className="flex flex-col items-center mb-10 md:mb-16 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-white shadow-sm border border-pink-50 text-pink-500 text-[10px] font-black uppercase tracking-[0.25em]">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+      <div className="max-w-5xl mx-auto border-2 border-slate-200 bg-white rounded-3xl shadow-xl overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+
+        {/* --- Header --- */}
+        <div className="relative z-10 flex justify-between items-center p-6 md:p-8 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 md:w-16 md:h-16 relative bg-slate-100 rounded-full border-2 border-slate-200 overflow-hidden">
+               {/* Placeholder Logo */}
+              <div className="w-full h-full bg-slate-200"></div> 
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-black text-slate-800 leading-none">
+                The Kids
+              </h1>
+              <span className="text-sm md:text-base font-bold text-slate-400 tracking-wide">
+                Olympus
+              </span>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="block text-3xl md:text-5xl font-black text-slate-800 leading-none">
+              <AnimatedCounter value={kids.length} />
             </span>
-            Live Competition
+            <span className="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest">
+              Total Players
+            </span>
           </div>
-          <h1 className="text-4xl md:text-7xl font-black text-slate-900 tracking-tight leading-none">
-            Hall of <span className="text-pink-500">Champions</span>
-          </h1>
-          <p className="mt-4 text-slate-400 text-xs font-bold uppercase tracking-widest italic">
-            Tie-breaker: Younger kids rank higher
-          </p>
-        </header>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
-          <div className="lg:col-span-5 flex flex-col md:flex-row items-center md:items-end justify-center gap-8 md:gap-4 lg:gap-6 min-h-[450px] pb-10">
-            <PodiumPillar 
-              kid={topThree[1]} 
-              rank={2} 
-              height="h-[180px]" 
-              color="bg-gradient-to-b from-slate-200 to-slate-300 shadow-[0_10px_40px_-15px_rgba(148,163,184,0.5)]" 
-              textColor="text-slate-500"
-              delay="0.1s"
-              order="order-2 md:order-1"
+        <div className="relative z-10 px-4 md:px-10 pb-10">
+          {/* --- Top 3 Podium --- */}
+          <div className="flex flex-col md:flex-row items-end justify-center gap-4 md:gap-8 mb-12 min-h-[220px]">
+            {/* Note: Podium animations are tricky because position logic is different per rank. 
+               We simply animate the Score counter here.
+            */}
+            <PodiumCard
+              kid={topThree[1]}
+              rank={2}
+              badgeSrc="/Rank2.svg"
+              scale="scale-90"
+              color="border-slate-300"
             />
-            <PodiumPillar 
-              kid={topThree[0]} 
-              rank={1} 
-              height="h-[240px] md:h-[260px]" 
-              color="bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 shadow-[0_20px_50px_-10px_rgba(234,179,8,0.4)]" 
-              isWinner
-              textColor="text-yellow-700"
-              delay="0s"
-              order="order-1 md:order-2"
+            <PodiumCard
+              kid={topThree[0]}
+              rank={1}
+              badgeSrc="/Rank1.svg"
+              scale="scale-110 -translate-y-4"
+              color="border-yellow-400"
+              isWinner={true}
             />
-            <PodiumPillar 
-              kid={topThree[2]} 
-              rank={3} 
-              height="h-[140px]" 
-              color="bg-gradient-to-b from-orange-200 to-orange-300 shadow-[0_10px_40px_-15px_rgba(194,65,12,0.4)]" 
-              textColor="text-orange-600"
-              delay="0.2s"
-              order="order-3"
+            <PodiumCard
+              kid={topThree[2]}
+              rank={3}
+              badgeSrc="/Rank3.svg"
+              scale="scale-90"
+              color="border-orange-200"
             />
           </div>
 
-          <div className="lg:col-span-7">
-            <div className="bg-white/80 backdrop-blur-md border border-white rounded-[2.5rem] shadow-2xl shadow-pink-100/50 overflow-hidden">
-              <div className="p-6 md:p-8 border-b border-slate-50 flex justify-between items-end">
-                <div>
-                  <h2 className="text-2xl font-black text-slate-800">Rankings</h2>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Real-time Leaderboard</p>
-                </div>
-                <div className="text-right">
-                   <span className="text-3xl font-black text-slate-200">{kids.length}</span>
-                </div>
-              </div>
+          {/* --- List View (The Rest) --- */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-12 gap-4 px-6 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+              <div className="col-span-2 md:col-span-1">Rank</div>
+              <div className="col-span-7 md:col-span-8">Player</div>
+              <div className="col-span-3 text-right">Score</div>
+            </div>
 
-              <div className="h-[550px] overflow-y-auto custom-scrollbar p-4 md:p-6 space-y-4">
+            <div className="h-[400px] overflow-y-auto custom-scrollbar space-y-3 pr-2">
+              {/* 2. AnimatePresence handles items entering/leaving */}
+              <AnimatePresence mode="popLayout">
                 {otherPlayers.map((kid, index) => (
-                  <div 
-                    key={kid._id} 
-                    className="animate-slide-up group flex items-center gap-3 md:gap-5 p-3 md:p-4 rounded-[1.5rem] bg-white border border-slate-50 hover:border-pink-200 hover:shadow-lg hover:shadow-pink-50/50 transition-all duration-500"
+                  // 3. motion.div replaces div
+                  <motion.div
+                    // IMPORTANT: layout prop creates the smooth swap animation
+                    layout 
+                    key={kid._id} // Must be unique ID, not index!
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                    className="grid grid-cols-12 gap-4 items-center p-3 md:p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-pink-300 hover:bg-white hover:shadow-md"
                   >
-                    <div className="w-6 md:w-8 text-lg md:text-xl font-black text-slate-200 group-hover:text-pink-200 transition-colors">
+                    <div className="col-span-2 md:col-span-1 text-lg font-black text-slate-300 pl-2">
                       {index + 4}
                     </div>
-                    
-                    <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-2xl overflow-hidden shadow-inner bg-slate-50 flex-shrink-0">
-                      <Image src={kid.pictureUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"} alt={kid.firstName} fill className="object-cover" />
+
+                    <div className="col-span-7 md:col-span-8 flex items-center gap-3 md:gap-4">
+                      <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden bg-white border-2 border-white shadow-sm flex-shrink-0">
+                        <Image
+                          src={
+                            kid.pictureUrl ||
+                            "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"
+                          }
+                          alt={kid.firstName}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-slate-700 text-sm md:text-base truncate">
+                          {kid.firstName} {kid.lastName}
+                        </h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase truncate">
+                          Age: {kid.age} • {kid.sabha || "Sabha"}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-700 text-base md:text-lg leading-none mb-1.5 truncate">
-                        {kid.firstName} {kid.lastName} <span className="text-slate-300 font-medium text-sm ml-1">(Age {kid.age})</span>
-                      </h3>
-                      <p className="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">{kid.sabha}</p>
+                    <div className="col-span-3 text-right pr-2">
+                      <span className="inline-block bg-white border border-slate-200 px-3 py-1 rounded-full text-sm font-black text-slate-800 shadow-sm">
+                        {/* 4. Use AnimatedCounter instead of raw number */}
+                        <AnimatedCounter value={kid.totalScore} />
+                      </span>
                     </div>
-
-                    <div className="bg-slate-50 px-3 md:px-4 py-1.5 md:py-2 rounded-2xl group-hover:bg-pink-500 transition-colors duration-500 flex-shrink-0 text-center">
-                      <div className="text-lg md:text-xl font-black text-slate-800 group-hover:text-white leading-none">{kid.totalScore}</div>
-                      <div className="text-[8px] uppercase font-bold text-slate-400 group-hover:text-pink-100 mt-0.5">Points</div>
-                    </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </AnimatePresence>
             </div>
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-slide-up { animation: slide-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
-        .animate-float { animation: float 4s ease-in-out infinite; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #F1F5F9; border-radius: 10px; }
-      `}</style>
+      {/* ... styles ... */}
     </div>
   );
 }
 
-function PodiumPillar({ kid, rank, height, color, isWinner, textColor, delay, order }) {
-  if (!kid) return <div className={`hidden md:block w-full ${height} ${order} bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100`} />;
+// --- Updated Podium Card to use AnimatedCounter ---
+function PodiumCard({ kid, rank, badgeSrc, scale, color, isWinner }) {
+  if (!kid)
+    return (
+      <div className={`w-full md:w-1/3 h-48 bg-slate-50/50 rounded-2xl border-2 border-dashed border-slate-200`}></div>
+    );
 
   return (
-    <div 
-      className={`animate-float flex flex-col items-center w-full md:w-auto md:min-w-[140px] max-w-[160px] transition-all duration-1000 ${order}`}
-      style={{ animationDelay: delay }}
-    >
-      <div className="flex flex-col items-center mb-6 w-full">
-        <div className="relative mb-3">
-          {isWinner && <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-4xl drop-shadow-lg z-30 animate-bounce text-yellow-500">👑</div>}
-          <div className={`
-            relative rounded-[2rem] overflow-hidden bg-white shadow-2xl transition-all duration-500
-            ${isWinner ? 'w-28 h-28 md:w-36 md:h-36 border-[6px] border-yellow-400 scale-110' : 'w-20 h-20 md:w-24 md:h-24 border-4 border-white'}
-          `}>
-            <Image src={kid.pictureUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"} alt={kid.firstName} fill className="object-cover" />
-          </div>
-        </div>
-        
-        <div className="text-center">
-          <h4 className={`font-black text-slate-800 uppercase tracking-tighter ${isWinner ? 'text-lg md:text-xl' : 'text-sm'}`}>
-            {kid.firstName}
-          </h4>
-          <p className="text-[10px] text-slate-400 font-bold mb-1">Age: {kid.age}</p>
-          <div className={`inline-block px-4 py-1 rounded-full font-bold shadow-sm ${isWinner ? 'bg-yellow-400 text-yellow-900 text-xs' : 'bg-slate-900 text-white text-[10px]'}`}>
-            {kid.totalScore} PTS
-          </div>
+    <div className={`relative w-full md:w-1/3 bg-white rounded-3xl border-[3px] p-4 flex flex-col items-center transition-transform duration-500 ${color} ${scale} shadow-xl`}>
+      {/* Badge Image */}
+      <div className="absolute -top-6 -right-4 w-16 h-16 md:w-20 md:h-20 z-20 drop-shadow-lg">
+        <div className="relative w-full h-full">
+           {/* Replace with your Image when ready */}
+           <Image
+            height={300}
+            width={300}
+            src={badgeSrc}
+            alt="Badge"
+            className="w-45 h-auto"
+          />
         </div>
       </div>
 
-      <div className={`
-        w-full ${height} ${color} rounded-[2.5rem] flex items-start justify-center pt-8 border-t-2 border-white/50 relative
-        ${isWinner ? 'md:scale-105 z-10' : 'opacity-90'}
-      `}>
-        <span className={`text-6xl md:text-7xl font-black italic tracking-tighter ${textColor} opacity-30`}>
-          {rank}
-        </span>
+      {/* Profile Image */}
+      <div className="relative mb-3 mt-2">
+        <div className={`relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-md bg-slate-100`}>
+          <Image
+            src={kid.pictureUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"}
+            alt={kid.firstName}
+            fill
+            className="object-cover"
+          />
+        </div>
+      </div>
+
+      <div className="text-center w-full">
+        <h3 className="font-black text-slate-800 text-lg md:text-xl truncate px-2">
+          {kid.firstName}
+        </h3>
+        <p className="text-xs font-bold text-slate-400 mb-3">Age: {kid.age}</p>
+
+        <div className={`mx-auto w-full py-2 rounded-xl font-black text-lg ${isWinner ? "bg-yellow-50 text-yellow-700" : "bg-slate-50 text-slate-600"}`}>
+          {/* Animated Score Here Too */}
+          <AnimatedCounter value={kid.totalScore} />{" "}
+          <span className="text-[10px] uppercase opacity-60">PTS</span>
+        </div>
       </div>
     </div>
   );

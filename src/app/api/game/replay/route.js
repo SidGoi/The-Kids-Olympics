@@ -36,7 +36,6 @@ export async function POST(req) {
 
     // 🔄 Replay logic
     game.played = false;
-    game.score = 0;
 
     // 🔢 Recalculate totalScore
     kid.totalScore = kid.games.reduce((sum, g) => sum + (g.score || 0), 0);

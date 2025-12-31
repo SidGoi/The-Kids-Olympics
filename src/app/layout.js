@@ -1,9 +1,12 @@
-import { Quicksand } from "next/font/google";
+import { Quicksand, Patrick_Hand } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 
 const quicksand = Quicksand({
   weight: ["300", "400", "500", "600", "700"],
+});
+const patrickhand = Patrick_Hand({
+  weight: ["400"],
 });
 
 export const metadata = {

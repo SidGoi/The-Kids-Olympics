@@ -124,3 +124,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.font-primary{
+  font-family: 'Patrick Hand';
+}
