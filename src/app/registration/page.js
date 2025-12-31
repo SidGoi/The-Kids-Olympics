@@ -41,12 +41,20 @@ const RegistrationPage = () => {
   const [place, setPlace] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Open OTP dialog if password not in localStorage
+  const [playingCount, setPlayingCount] = useState(0);
+
   useEffect(() => {
     const savedPassword = localStorage.getItem("registrationPassword");
     if (savedPassword === OTP_PASSWORD) {
       setAuthorized(true);
     }
+    fetch("/api/balak/count")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setPlayingCount(data.totalKids);
+        }
+      });
   }, []);
 
   // Handle OTP submission
@@ -100,14 +108,30 @@ const RegistrationPage = () => {
 
     setLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const formData = new FormData();
+    formData.append("image", image);
+    formData.append("firstName", balakName);
+    formData.append("lastName", surname);
+    formData.append("age", age);
+    formData.append("sabha", sabha);
+    formData.append("mobile", noMobile ? "" : mobile);
+    formData.append("address", isNewBalak ? place : "");
 
+    const res = await fetch("/api/balak/add", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
     setLoading(false);
 
-    toast.success(`${balakName} (${age} yrs) registered! 🏅`);
+    if (!res.ok) {
+      toast.error(data.error || "Failed to add balak");
+      return;
+    }
 
-    // Reset all fields
+    toast.success(`${balakName} registered successfully 🏅`);
+
     setImage(null);
     setImagePreview(null);
     setBalakName("");
@@ -169,7 +193,7 @@ const RegistrationPage = () => {
             <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
           </span>
-          Playing: 123
+          Playing: {playingCount}
         </p>
       </header>
 
@@ -237,8 +261,8 @@ const RegistrationPage = () => {
                   <SelectValue placeholder="Select Age" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[...Array(15)].map((_, i) => {
-                    const ageValue = i + 4;
+                  {[...Array(18)].map((_, i) => {
+                    const ageValue = i + 1;
                     return (
                       <SelectItem key={ageValue} value={ageValue.toString()}>
                         {ageValue}
