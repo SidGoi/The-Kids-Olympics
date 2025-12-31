@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,17 +10,32 @@ const KidsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // We define the fetch function inside useEffect so it can be reused
     const fetchKids = async () => {
-      const res = await fetch("/api/balak/all");
-      const data = await res.json();
+      try {
+        const res = await fetch("/api/balak/all");
+        const data = await res.json();
 
-      if (data.success) {
-        setKids(data.kids);
+        if (data.success) {
+          // Update the state with fresh data from Atlas
+          setKids(data.kids);
+        }
+      } catch (error) {
+        console.error("Live update error:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
+    // 1. Initial fetch on page load
     fetchKids();
+
+    // 2. Set up polling: Fetch again every 3000ms (3 seconds)
+    // This is what makes it "Live" without a manual reload
+    const liveInterval = setInterval(fetchKids, 3000);
+
+    // 3. Cleanup: Stop fetching when the user leaves the page
+    return () => clearInterval(liveInterval);
   }, []);
 
   if (loading) {
@@ -31,8 +47,10 @@ const KidsPage = () => {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">All Kids 🎉</h1>
+    <div className="p-6 bg-pink-50 min-h-screen">
+      <h1 className="text-3xl font-black text-pink-600 mb-6 uppercase tracking-widest text-center sm:text-left">
+        Live Leaderboard 🎉
+      </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {kids.map((kid) => (
