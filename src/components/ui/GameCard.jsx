@@ -2,13 +2,17 @@
 
 import React, { useState } from 'react';
 
-export default function GameCard({ kidId, userName, userImage, sabhaName, gameName, isPlayedInitially }) {
-  const [rating, setRating] = useState(0); 
+// Added initialStars to props
+export default function GameCard({ kidId, userName, userImage, sabhaName, gameName, isPlayedInitially, initialStars = 0 }) {
+  
+  // Initialize rating with the stars already saved in the database
+  const [rating, setRating] = useState(initialStars); 
   const [isLoading, setIsLoading] = useState(false);
   const [isCompleted, setIsCompleted] = useState(isPlayedInitially);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleStarClick = (index) => {
+    // Keep this check so users can't change the rating once it's locked
     if (isCompleted || isLoading) return;
     setRating(prevRating => (prevRating === index ? 0 : index));
   };
@@ -44,7 +48,7 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
 
   return (
     <div className="w-full max-w-xl mx-auto p-2">
-      <div className={`relative flex items-center p-4 rounded-2xl transition-all duration-500 bg-white border border-pink-100 shadow-sm ${isCompleted ? 'opacity-70 grayscale-[20%]' : 'hover:shadow-md hover:scale-[1.01]'}`}>
+      <div className={`relative flex items-center p-4 rounded-2xl transition-all duration-500 bg-white border border-pink-100 shadow-sm ${isCompleted ? 'opacity-75 grayscale-[10%]' : 'hover:shadow-md hover:scale-[1.01]'}`}>
         
         {/* LEFT: Image Section */}
         <div className="relative flex-shrink-0 mr-4 self-start sm:self-center">
@@ -65,7 +69,6 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
         {/* RIGHT: Content Area */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between flex-1 min-w-0">
           
-          {/* Text Section (Name and Sabha) */}
           <div className="flex flex-col mb-3 sm:mb-0">
             <div className="flex flex-wrap items-baseline gap-2">
               <span className="font-bold text-pink-900 text-base leading-tight break-words">
@@ -77,7 +80,6 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
             </div>
           </div>
 
-          {/* Interaction Section (Stars and Toggler) */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-0.5" role="img">
               {[1, 2, 3].map((star) => (
@@ -85,6 +87,7 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
                   key={star} 
                   onClick={() => handleStarClick(star)} 
                   disabled={isCompleted || isLoading}
+                  // This line ensures stars remain pink if they match the saved rating
                   className={`transition-all duration-200 ${!isCompleted && !isLoading ? 'hover:scale-110 active:scale-90' : 'cursor-default'} ${star <= rating ? 'text-pink-500' : 'text-gray-200'}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
@@ -106,7 +109,6 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
           </div>
         </div>
 
-        {/* Success Overlay */}
         {showSuccess && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl animate-in fade-in zoom-in duration-300 z-10">
             <div className="flex items-center gap-2 bg-pink-50 px-4 py-2 rounded-full border border-pink-100 shadow-sm">
