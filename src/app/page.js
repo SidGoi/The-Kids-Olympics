@@ -89,7 +89,7 @@ const RootPage = () => {
 
   return (
     <div className="min-h-screen flex justify-center bg-muted/40 p-4">
-      <div className="font-medium w-full max-w-lg p-6">
+      <div className="font-medium w-full max-w-lg p-4">
 
         <div className="space-y-5">
           {/* Image */}
