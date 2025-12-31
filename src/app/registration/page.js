@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 
-const OTP_PASSWORD = "929292";
+const OTP_PASSWORD = "108108";
 
 const RegistrationPage = () => {
   const [authorized, setAuthorized] = useState(false);
