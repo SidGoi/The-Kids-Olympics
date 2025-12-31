@@ -16,8 +16,15 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={quicksand.className}>
         {children}
-
-        <Toaster richColors position="bottom-right" />
+        <Toaster
+          richColors
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              fontFamily: "Quicksand, sans-serif",
+            },
+          }}
+        />
       </body>
     </html>
   );

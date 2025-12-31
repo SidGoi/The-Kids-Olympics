@@ -19,7 +19,8 @@ const RootPage = () => {
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [balakName, setBalakName] = useState("");
-  const [fatherName, setFatherName] = useState("");
+  const [surname, setSurname] = useState("");
+
   const [mobile, setMobile] = useState("");
   const [noMobile, setNoMobile] = useState(false);
   const [sabha, setSabha] = useState("");
@@ -42,7 +43,7 @@ const RootPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!balakName || !fatherName || !sabha || !age) {
+    if (!balakName || !surname || !sabha || !age) {
       toast.error("Please fill all Details!");
       return;
     }
@@ -70,15 +71,12 @@ const RootPage = () => {
 
     setLoading(false);
 
-    toast.success("Participant added successfully 🏅", {
-      description: `${balakName} (${age} yrs) registered`,
-    });
+    toast.success(`${balakName} (${age} yrs) registered! 🏅`);
 
-    // ✅ Reset all fields
     setImage(null);
     setImagePreview(null);
     setBalakName("");
-    setFatherName("");
+    setSurname("");
     setMobile("");
     setNoMobile(false);
     setSabha("");
@@ -88,9 +86,8 @@ const RootPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center bg-muted/40 p-4">
-      <div className="font-medium w-full max-w-lg p-4">
-
+    <div className="min-h-screen flex flex-col bg-muted/40 p-8">
+      <div className="font-medium w-full max-w-lg">
         <div className="space-y-5">
           {/* Image */}
           <div className="space-y-3">
@@ -122,27 +119,30 @@ const RootPage = () => {
             )}
           </div>
 
-          {/* Balak Name */}
-          <div className="space-y-3">
-            <Label>Balak Name</Label>
-            <Input
-              type="text"
-              placeholder="Enter child name"
-              value={balakName}
-              onChange={(e) => setBalakName(e.target.value)}
-            />
+          <div className="flex items-center justify-between gap-5">
+            {/* Balak Name */}
+            <div className="space-y-3 w-full">
+              <Label>Balak Name</Label>
+              <Input
+                type="text"
+                placeholder="Enter child name"
+                value={balakName}
+                onChange={(e) => setBalakName(e.target.value)}
+              />
+            </div>
+
+            {/* Father Name */}
+            <div className="space-y-3 w-full">
+              <Label>Surname</Label>
+              <Input
+                type="text"
+                placeholder="Enter surname"
+                value={surname} // you can optionally rename state to `surname`
+                onChange={(e) => setSurname(e.target.value)}
+              />
+            </div>
           </div>
 
-          {/* Father Name */}
-          <div className="space-y-3">
-            <Label>Father Name</Label>
-            <Input
-              type="text"
-              placeholder="Enter father name"
-              value={fatherName}
-              onChange={(e) => setFatherName(e.target.value)}
-            />
-          </div>
           <div className="flex gap-6 flex-wrap">
             {/* Age */}
             <div className="space-y-3">
@@ -185,6 +185,7 @@ const RootPage = () => {
                   <SelectItem value="Gheekanta">Gheekanta</SelectItem>
                   <SelectItem value="Vadigam">Vadigam</SelectItem>
                   <SelectItem value="Shivshakti">Shivshakti</SelectItem>
+                  <SelectItem value="None">None</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -242,6 +243,7 @@ const RootPage = () => {
             onClick={handleSubmit}
             disabled={loading}
             className="w-full mt-4 font-bold"
+            size="lg"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">
