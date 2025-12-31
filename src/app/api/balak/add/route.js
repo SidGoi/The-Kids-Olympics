@@ -3,6 +3,7 @@ import cloudinary from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
 import Kid from "@/models/Kid";
 import Games from "@/data/Games";
+import { pusher } from "@/lib/pusher";
 
 export async function POST(req) {
   try {
@@ -59,6 +60,10 @@ export async function POST(req) {
       pictureUrl: uploadResult.secure_url,
       totalScore: 0,
       games: initialGames,
+    });
+
+    await pusher.trigger("kids-channel", "kid-added", {
+      refresh: true,
     });
 
     return NextResponse.json({ success: true, kid }, { status: 201 });

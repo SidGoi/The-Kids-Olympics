@@ -4,6 +4,7 @@ const Games = [
   { name: "Kutra nu hadku", slug: "on-the-bone", played: false, score: 0 },
   { name: "Rope", slug: "rope", played: false, score: 0 },
   { name: "Bowl", slug: "bowl", played: false, score: 0 },
+  { name: "Advanture", slug: "advanture", played: false, score: 0 },
 ];
 
 export default Games;

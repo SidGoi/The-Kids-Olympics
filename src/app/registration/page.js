@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import Pusher from "pusher-js";
 
 const OTP_PASSWORD = "108108";
 
@@ -55,6 +56,29 @@ const RegistrationPage = () => {
           setPlayingCount(data.totalKids);
         }
       });
+
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: "ap2",
+    });
+
+    const channel = pusher.subscribe("kids-channel");
+
+    channel.bind("kid-added", () => {
+      // Re-fetch count when event arrives
+      fetch("/api/balak/count")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setPlayingCount(data.totalKids);
+          }
+        });
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+      pusher.disconnect();
+    };
   }, []);
 
   // Handle OTP submission
