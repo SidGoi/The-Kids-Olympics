@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { Spinner } from "@/components/ui/spinner";
 
 const RootPage = () => {
   const [image, setImage] = useState(null);
@@ -24,6 +25,7 @@ const RootPage = () => {
   const [age, setAge] = useState("");
   const [isNewBalak, setIsNewBalak] = useState(false);
   const [place, setPlace] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -38,33 +40,52 @@ const RootPage = () => {
     setImagePreview(null);
   };
 
-  const handleSubmit = () => {
-    if (!balakName || !fatherName || !sabha || !age) {
-      toast.error("Please fill all Details!");
+const handleSubmit = async () => {
+  if (!balakName || !fatherName || !sabha || !age) {
+    toast.error("Please fill all Details!");
+    return;
+  }
+
+  if (!noMobile) {
+    if (!mobile) {
+      toast.error("Mobile number is required!");
       return;
     }
-
-    if (!noMobile) {
-      if (!mobile) {
-        toast.error("Mobile number is required!");
-        return;
-      }
-
-      if (mobile.length !== 10) {
-        toast.error("Mobile Number must be 10 digits!");
-        return;
-      }
-    }
-
-    if (isNewBalak && !place) {
-      toast.error("Please enter Place for New Balak!");
+    if (mobile.length !== 10) {
+      toast.error("Mobile Number must be 10 digits!");
       return;
     }
+  }
 
-    toast.success("Participant added successfully 🏅", {
-      description: `${balakName} (${age} yrs) registered`,
-    });
-  };
+  if (isNewBalak && !place) {
+    toast.error("Please enter Place for New Balak!");
+    return;
+  }
+
+  setLoading(true);
+
+  // Simulate API call
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  setLoading(false);
+
+  toast.success("Participant added successfully 🏅", {
+    description: `${balakName} (${age} yrs) registered`,
+  });
+
+  // ✅ Reset all fields
+  setImage(null);
+  setImagePreview(null);
+  setBalakName("");
+  setFatherName("");
+  setMobile("");
+  setNoMobile(false);
+  setSabha("");
+  setAge("");
+  setIsNewBalak(false);
+  setPlace("");
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
@@ -73,9 +94,9 @@ const RootPage = () => {
           Kids Olympics Registration 🏅
         </h1>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Image */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Child Photo</Label>
             <Input type="file" accept="image/*" onChange={handleImageChange} />
 
@@ -98,7 +119,7 @@ const RootPage = () => {
           </div>
 
           {/* Balak Name */}
-          <div className="space-y-1">
+          <div className="space-y-3">
             <Label>Balak Name</Label>
             <Input
               type="text"
@@ -109,7 +130,7 @@ const RootPage = () => {
           </div>
 
           {/* Father Name */}
-          <div className="space-y-1">
+          <div className="space-y-3">
             <Label>Father Name</Label>
             <Input
               type="text"
@@ -138,7 +159,6 @@ const RootPage = () => {
                 </SelectContent>
               </Select>
             </div>
-
             {/* Mandal / Sabha */}
             <div className="space-y-3">
               <Label>BalSabha</Label>
@@ -164,32 +184,32 @@ const RootPage = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            {/* New Balak */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-1">
-                <Label>New Balak</Label>
-                <Switch
-                  checked={isNewBalak}
-                  className={'scale-80'}
-                  onCheckedChange={(checked) => {
-                    setIsNewBalak(checked);
-                    if (!checked) setPlace("");
-                  }}
-                />
-              </div>
-
-              <Input
-                type="text"
-                placeholder="Enter Place"
-                value={place}
-                disabled={!isNewBalak}
-                onChange={(e) => setPlace(e.target.value)}
+          {/* New Balak */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1">
+              <Label>New Balak</Label>
+              <Switch
+                checked={isNewBalak}
+                className={"scale-80"}
+                onCheckedChange={(checked) => {
+                  setIsNewBalak(checked);
+                  if (!checked) setPlace("");
+                }}
               />
             </div>
+
+            <Input
+              type="text"
+              placeholder="Enter Place"
+              value={place}
+              disabled={!isNewBalak}
+              onChange={(e) => setPlace(e.target.value)}
+            />
           </div>
           {/* Mobile Number */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Mobile Number</Label>
             <Input
               type="tel"
@@ -214,8 +234,19 @@ const RootPage = () => {
           </div>
 
           {/* Submit */}
-          <Button onClick={handleSubmit} className="font-bold w-full mt-4">
-            Add Participant
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full mt-4 font-bold"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <Spinner className="h-4 w-4" />
+                Adding...
+              </div>
+            ) : (
+              "Add Participant"
+            )}
           </Button>
         </div>
       </div>
