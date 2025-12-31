@@ -34,11 +34,8 @@ export async function POST(req) {
       );
     }
 
-    // 🔄 Replay logic
+    
     game.played = false;
-
-    // 🔢 Recalculate totalScore
-    kid.totalScore = kid.games.reduce((sum, g) => sum + (g.score || 0), 0);
 
     await kid.save();
     await pusher.trigger("kids-score", "score-updated", {
