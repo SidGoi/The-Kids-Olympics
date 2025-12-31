@@ -5,13 +5,13 @@ import initialGames from "@/data/Games";
 import GameCard from "@/components/ui/GameCard";
 import { Spinner } from "@/components/ui/spinner";
 // 1. Import icons for search
-import { Search } from "lucide-react"; 
+import { Search } from "lucide-react";
 
 export default function GamePage() {
   const params = useParams();
   const [kids, setKids] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // 2. Add Search State
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -104,7 +104,11 @@ export default function GamePage() {
                 isPlayedInitially={currentProgress?.played || false}
                 // FIXED LOGIC: Pass score even if not played so Replay badge works
                 initialStars={
-                  currentProgress ? currentProgress.score / 1000 : 0
+                  currentProgress
+                    ? !currentProgress?.played
+                      ? 0
+                      : currentProgress.score / 1000
+                    : 0
                 }
               />
             );
