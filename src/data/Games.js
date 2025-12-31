@@ -1,9 +1,9 @@
-const initialGames = [
-  { name: "Ramatiyal Hathi", slug: "ramatiyal-hathi" },
-  { name: "Limbu Chamchi", slug: "limbu-chamchi" },
-  { name: "Kutra nu hadku", slug: "kutra-nu-hadku" },
-  { name: "Rope", slug: "rope" },
-  { name: "Bowl", slug: "bowl" },
+const Games = [
+  { name: "Game 1", played: false, score: 0 },
+  { name: "Game 2", played: false, score: 0 },
+  { name: "Game 3", played: false, score: 0 },
+  { name: "Game 4", played: false, score: 0 },
+  { name: "Game 5", played: false, score: 0 },
 ];
 
-export default initialGames;
+export default Games;

@@ -43,8 +43,11 @@ export async function POST(req) {
         .end(buffer);
     });
 
-    // Edit as available games!
-    const initialGames = Games;
+    const initialGames = Games.map((game) => ({
+      name: game.name,
+      played: false,
+      score: 0,
+    }));
 
     const kid = await Kid.create({
       firstName,
