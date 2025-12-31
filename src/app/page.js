@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/ui/spinner";
+import Image from "next/image";
 
 const RootPage = () => {
   const [image, setImage] = useState(null);
@@ -40,52 +41,51 @@ const RootPage = () => {
     setImagePreview(null);
   };
 
-const handleSubmit = async () => {
-  if (!balakName || !fatherName || !sabha || !age) {
-    toast.error("Please fill all Details!");
-    return;
-  }
-
-  if (!noMobile) {
-    if (!mobile) {
-      toast.error("Mobile number is required!");
+  const handleSubmit = async () => {
+    if (!balakName || !fatherName || !sabha || !age) {
+      toast.error("Please fill all Details!");
       return;
     }
-    if (mobile.length !== 10) {
-      toast.error("Mobile Number must be 10 digits!");
+
+    if (!noMobile) {
+      if (!mobile) {
+        toast.error("Mobile number is required!");
+        return;
+      }
+      if (mobile.length !== 10) {
+        toast.error("Mobile Number must be 10 digits!");
+        return;
+      }
+    }
+
+    if (isNewBalak && !place) {
+      toast.error("Please enter Place for New Balak!");
       return;
     }
-  }
 
-  if (isNewBalak && !place) {
-    toast.error("Please enter Place for New Balak!");
-    return;
-  }
+    setLoading(true);
 
-  setLoading(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+    setLoading(false);
 
-  setLoading(false);
+    toast.success("Participant added successfully 🏅", {
+      description: `${balakName} (${age} yrs) registered`,
+    });
 
-  toast.success("Participant added successfully 🏅", {
-    description: `${balakName} (${age} yrs) registered`,
-  });
-
-  // ✅ Reset all fields
-  setImage(null);
-  setImagePreview(null);
-  setBalakName("");
-  setFatherName("");
-  setMobile("");
-  setNoMobile(false);
-  setSabha("");
-  setAge("");
-  setIsNewBalak(false);
-  setPlace("");
-};
-
+    // ✅ Reset all fields
+    setImage(null);
+    setImagePreview(null);
+    setBalakName("");
+    setFatherName("");
+    setMobile("");
+    setNoMobile(false);
+    setSabha("");
+    setAge("");
+    setIsNewBalak(false);
+    setPlace("");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
@@ -97,14 +97,21 @@ const handleSubmit = async () => {
         <div className="space-y-5">
           {/* Image */}
           <div className="space-y-3">
-            <Label>Child Photo</Label>
-            <Input type="file" accept="image/*" onChange={handleImageChange} />
+            <Label>Balak Photo</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageChange}
+            />
 
             {imagePreview && (
               <div className="relative mt-2 w-32 h-32 rounded-lg overflow-hidden border">
-                <img
+                <Image
                   src={imagePreview}
-                  alt="Preview"
+                  alt="Preview Image"
+                  height={200}
+                  width={200}
                   className="w-full h-full object-cover"
                 />
                 <button
