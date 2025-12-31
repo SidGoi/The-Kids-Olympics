@@ -1,0 +1,349 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { toast, Toaster } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Spinner } from "@/components/ui/spinner";
+import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
+
+const OTP_PASSWORD = "929292";
+
+const RegistrationPage = () => {
+  const [authorized, setAuthorized] = useState(false);
+  const [otp, setOtp] = useState("");
+  const router = useRouter();
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [balakName, setBalakName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [noMobile, setNoMobile] = useState(false);
+  const [sabha, setSabha] = useState("");
+  const [age, setAge] = useState("");
+  const [isNewBalak, setIsNewBalak] = useState(false);
+  const [place, setPlace] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Open OTP dialog if password not in localStorage
+  useEffect(() => {
+    const savedPassword = localStorage.getItem("registrationPassword");
+    if (savedPassword === OTP_PASSWORD) {
+      setAuthorized(true);
+    }
+  }, []);
+
+  // Handle OTP submission
+  const handleOtpSubmit = () => {
+    if (otp === OTP_PASSWORD) {
+      localStorage.setItem("registrationPassword", OTP_PASSWORD);
+      toast.success("OTP Verified! 🎉");
+      setAuthorized(true);
+    } else {
+      toast.error("Wrong OTP! Try again.");
+      setOtp("");
+    }
+  };
+
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(null);
+  };
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    if (!balakName || !surname || !sabha || !age) {
+      toast.error("Please fill all Details!");
+      return;
+    }
+
+    if (!noMobile) {
+      if (!mobile) {
+        toast.error("Mobile number is required!");
+        return;
+      }
+      if (mobile.length !== 10) {
+        toast.error("Mobile Number must be 10 digits!");
+        return;
+      }
+    }
+
+    if (isNewBalak && !place) {
+      toast.error("Please enter Address for New Balak!");
+      return;
+    }
+
+    setLoading(true);
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    setLoading(false);
+
+    toast.success(`${balakName} (${age} yrs) registered! 🏅`);
+
+    // Reset all fields
+    setImage(null);
+    setImagePreview(null);
+    setBalakName("");
+    setSurname("");
+    setMobile("");
+    setNoMobile(false);
+    setSabha("");
+    setAge("");
+    setIsNewBalak(false);
+    setPlace("");
+  };
+
+  // Render OTP dialog if not authorized
+  if (!authorized) {
+    return (
+      <>
+        <Toaster richColors position="bottom-right" />
+        <Dialog
+          open={!authorized}
+          onOpenChange={(open) => {
+            if (!open) {
+              router.push("/");
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-center text-lg font-semibold">
+                Enter 6-digit Password
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <Input
+                type="text"
+                maxLength={6}
+                placeholder="Enter Password"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/, ""))}
+                className="text-center text-lg"
+              />
+              <Button onClick={handleOtpSubmit} className="w-full">
+                Go to Registration
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  // Render registration form
+  return (
+    <div className="min-h-screen flex flex-col gap-10 bg-muted/40 p-8">
+      <Toaster richColors position="bottom-right" />
+      <header className="flex items-center justify-between border-b pb-5 border-gray-600">
+        <h1 className="text-2xl font-bold text-primary">Logo</h1>
+        <p className="flex items-center gap-2 font-semibold">
+          <span className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+          </span>
+          Playing: 123
+        </p>
+      </header>
+
+      <div className="font-medium w-full max-w-lg">
+        <div className="space-y-5">
+          {/* Image */}
+          <div className="space-y-3">
+            <Label>Balak Photo</Label>
+            <Input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageChange}
+            />
+            {imagePreview && (
+              <div className="relative mt-2 w-32 h-32 rounded-lg overflow-hidden border">
+                <Image
+                  src={imagePreview}
+                  alt="Preview Image"
+                  height={200}
+                  width={200}
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-1 right-1 rounded-full bg-black/60 text-white text-xs px-2 py-1"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-5">
+            {/* Balak Name */}
+            <div className="space-y-3 w-full">
+              <Label>Balak Name</Label>
+              <Input
+                type="text"
+                placeholder="Enter child name"
+                value={balakName}
+                onChange={(e) => setBalakName(e.target.value)}
+              />
+            </div>
+
+            {/* Surname */}
+            <div className="space-y-3 w-full">
+              <Label>Surname</Label>
+              <Input
+                type="text"
+                placeholder="Enter surname"
+                value={surname}
+                onChange={(e) => setSurname(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-6 flex-wrap">
+            {/* Age */}
+            <div className="space-y-3">
+              <Label>Age</Label>
+              <Select value={age} onValueChange={setAge}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Age" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...Array(15)].map((_, i) => {
+                    const ageValue = i + 4;
+                    return (
+                      <SelectItem key={ageValue} value={ageValue.toString()}>
+                        {ageValue}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Mandal / Sabha */}
+            <div className="space-y-3">
+              <Label>BalSabha</Label>
+              <Select value={sabha} onValueChange={setSabha}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Mandal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Sardarkunj">Sardarkunj</SelectItem>
+                  <SelectItem value="Akshar Colony">Akshar Colony</SelectItem>
+                  <SelectItem value="Vanmalivanka Ni Pole">
+                    Vanmalivanka Ni Pole
+                  </SelectItem>
+                  <SelectItem value="Vadikotdi Ni Pole">
+                    Vadikotdi Ni Pole
+                  </SelectItem>
+                  <SelectItem value="Aambalivali Pole">
+                    Aambalivali Pole
+                  </SelectItem>
+                  <SelectItem value="Gheekanta">Gheekanta</SelectItem>
+                  <SelectItem value="Vadigam">Vadigam</SelectItem>
+                  <SelectItem value="Shivshakti">Shivshakti</SelectItem>
+                  <SelectItem value="None">None</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* New Balak */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-1">
+              <Label>New Balak</Label>
+              <Switch
+                checked={isNewBalak}
+                className={"scale-80"}
+                onCheckedChange={(checked) => {
+                  setIsNewBalak(checked);
+                  if (!checked) setPlace("");
+                }}
+              />
+            </div>
+
+            <Input
+              type="text"
+              placeholder="Enter Address (Short)"
+              value={place}
+              disabled={!isNewBalak}
+              onChange={(e) => setPlace(e.target.value)}
+            />
+          </div>
+
+          {/* Mobile Number */}
+          <div className="space-y-3">
+            <Label>Mobile Number</Label>
+            <Input
+              type="tel"
+              placeholder="Enter mobile number"
+              value={mobile}
+              disabled={noMobile}
+              onChange={(e) => setMobile(e.target.value)}
+            />
+
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={noMobile}
+                onCheckedChange={(checked) => {
+                  setNoMobile(checked);
+                  if (checked) setMobile("");
+                }}
+              />
+              <span className="text-sm text-muted-foreground">
+                Don’t know mobile number
+              </span>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <Button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full mt-4 font-bold"
+            size="lg"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <Spinner className="h-4 w-4" />
+                Adding...
+              </div>
+            ) : (
+              "Add Participant"
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RegistrationPage;
