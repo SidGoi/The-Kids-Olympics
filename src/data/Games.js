@@ -12,7 +12,7 @@ const Games = [
     slug: "limbu-chamchi",
     played: false,
     score: 0,
-    themeColor: "#E2852E", // Yellow (Lemon)
+    themeColor: "#F875AA", // Yellow (Lemon)
     icon: "Utensils",
   },
   {
