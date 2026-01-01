@@ -27,6 +27,11 @@ const RootPage = () => {
             View All Players
           </Button>
         </Link>
+        <Link href={"/replay"} className="w-full">
+          <Button className="w-full font-bold bg-red-400" size="lg">
+            Replay
+          </Button>
+        </Link>
       </div>
     </div>
   );
