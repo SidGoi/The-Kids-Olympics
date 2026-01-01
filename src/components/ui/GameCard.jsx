@@ -58,11 +58,11 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto p-2">
-      <div className={`relative flex items-center p-4 rounded-2xl transition-all duration-500 bg-white border border-pink-100 shadow-sm ${isCompleted ? 'opacity-75 grayscale-[10%]' : 'hover:shadow-md hover:scale-[1.01]'}`}>
+    <div className="w-full max-w-xl mx-auto">
+      <div className={`relative flex items-center p-4 rounded-2xl transition-all duration-500 bg-white border border-pink-100 ${isCompleted ? 'opacity-75 grayscale-[10%]' : 'hover:shadow-md hover:scale-[1.01]'}`}>
         
         {/* LEFT: Image Section */}
-        <div className="relative flex-shrink-0 mr-4 self-start sm:self-center">
+        <div className="relative flex-shrink-0 mr-5 self-start sm:self-center">
           <img 
             src={userImage || 'https://via.placeholder.com/150'} 
             alt={userName} 
