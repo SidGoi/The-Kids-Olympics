@@ -17,7 +17,10 @@ export default function ReplayPage() {
   const [selectedKid, setSelectedKid] = useState(null);
   const [selectedGame, setSelectedGame] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadingAll, setLoadingAll] = useState(false); // Separate loading state for "Replay All"
+  const [loadingAll, setLoadingAll] = useState(false);
+  
+  // ✅ State to control the Custom UI Alertbox
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Fetch kids
   useEffect(() => {
@@ -52,24 +55,14 @@ export default function ReplayPage() {
     if (data.success) {
       toast.success("Game replay enabled 🎮");
       setSelectedGame("");
-      // Optional: Refresh local kid data here if needed
     } else {
       toast.error(data.message || "Something went wrong");
     }
   };
 
-  // ✅ Handle Replay All
-  const handleReplayAll = async () => {
-    if (!selectedKid) {
-      toast.error("Please select a kid first");
-      return;
-    }
-
-    // Confirmation (Optional but recommended)
-    if (!confirm(`Are you sure you want to reset ALL games for ${selectedKid.firstName}?`)) {
-        return;
-    }
-
+  // ✅ Actual logic for Replay All
+  const executeReplayAll = async () => {
+    setShowConfirm(false); // Close the custom alertbox
     setLoadingAll(true);
 
     const res = await fetch("/api/game/replay-all", {
@@ -92,8 +85,59 @@ export default function ReplayPage() {
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-center">🔄 Replay Game</h1>
+    <div className="p-6 max-w-xl mx-auto space-y-6 relative">
+      
+      {/* 🛑 Custom UI Alertbox Overlay */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+            <div className="text-center">
+              <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <h3 className="text-xl font-black text-slate-900 mb-2">Are you sure?</h3>
+              <p className="text-slate-500 mb-8 leading-relaxed">
+                This will reset <span className="font-bold text-red-600">ALL</span> games for <br/>
+                <span className="font-bold text-slate-800">{selectedKid?.firstName} {selectedKid?.lastName}</span>.
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={executeReplayAll}
+                  variant="destructive" 
+                  className="w-full h-12 rounded-xl font-bold text-lg"
+                >
+                  Yes, Reset all games
+                </Button>
+                <Button 
+                  onClick={() => setShowConfirm(false)}
+                  variant="ghost" 
+                  className="w-full h-12 rounded-xl font-bold text-slate-400 hover:text-slate-600"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Button className={"flex items-center justify-center gap-1 mb-8"}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24px"
+          viewBox="0 -960 960 960"
+          width="24px"
+          fill="#FFFFFF"
+        >
+          <path d="m314-440 114 114q12 12 11.5 28T428-270q-12 12-28.5 12.5T371-269L188-452q-12-12-12-28t12-28l183-183q12-12 28.5-11.5T428-690q11 12 11.5 28T428-634L314-520h446q17 0 28.5 11.5T800-480q0 17-11.5 28.5T760-440H314Z" />
+        </svg>{" "}
+        Back to Home
+      </Button>
+      
+      <header className="mb-6">
+        <h1 className="text-4xl font-bold text-pink-600">Replay Games</h1>
+      </header>
 
       {/* Kid Select */}
       <Select
@@ -119,7 +163,10 @@ export default function ReplayPage() {
       {selectedKid && (
         <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow">
           <Image
-            src={selectedKid.pictureUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"}
+            src={
+              selectedKid.pictureUrl ||
+              "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"
+            }
             width={60}
             height={60}
             className="rounded-lg"
@@ -129,9 +176,7 @@ export default function ReplayPage() {
             <p className="font-bold">
               {selectedKid.firstName} {selectedKid.lastName}
             </p>
-            <p className="text-sm text-gray-500">
-              Select action below
-            </p>
+            <p className="text-sm text-gray-500">Select action below</p>
           </div>
         </div>
       )}
@@ -169,19 +214,24 @@ export default function ReplayPage() {
         </Button>
 
         <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase">OR</span>
-            <div className="flex-grow border-t border-gray-200"></div>
+          <div className="flex-grow border-t border-gray-200"></div>
+          <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase">
+            OR
+          </span>
+          <div className="flex-grow border-t border-gray-200"></div>
         </div>
 
-        {/* ✅ Replay All Button */}
+        {/* ✅ Replay All Button - Now triggers Custom Alertbox */}
         <Button
-          onClick={handleReplayAll}
-          variant="destructive" // Makes it red/alert style
+          onClick={() => {
+            if (!selectedKid) return toast.error("Please select a kid first");
+            setShowConfirm(true);
+          }}
+          variant="destructive"
           className="w-full"
           disabled={loadingAll || !selectedKid || loading}
         >
-          {loadingAll ? "Resetting All..." : "🔄 Replay All Games"}
+          {loadingAll ? "Resetting All..." : " Replay All Games"}
         </Button>
       </div>
     </div>
