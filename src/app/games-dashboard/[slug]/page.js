@@ -59,7 +59,7 @@ export default function GamePage() {
     );
   }
 
-  return (
+  return ( 
     <div className="min-h-screen font-primary bg-[#FCF9EA] px-6 py-10 md:p-12 flex flex-col">
       <h1 className="text-4xl md:text-5xl font-black mb-5 uppercase tracking-tight text-primary">
         {gameInfo.name}
