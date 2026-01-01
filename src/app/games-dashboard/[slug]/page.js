@@ -64,8 +64,8 @@ export default function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-pink-50 p-4 md:p-12 flex flex-col items-center">
-      <h1 className="text-3xl md:text-5xl font-black text-pink-600 mb-6 uppercase tracking-tight text-center">
+    <div className="min-h-screen font-primary bg-[#FCF9EA] p-4 md:p-12 flex flex-col">
+      <h1 className="text-3xl md:text-5xl font-black mb-6 uppercase tracking-tight">
         {gameInfo.name}
       </h1>
 
