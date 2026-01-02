@@ -13,7 +13,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast, Toaster } from "sonner";
 import { Switch } from "@/components/ui/switch";
-import { Spinner } from "@/components/ui/spinner";
 import Image from "next/image";
 import {
   Dialog,
@@ -32,14 +31,17 @@ const RegistrationPage = () => {
   const router = useRouter();
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  
+  // Form States
   const [balakName, setBalakName] = useState("");
   const [surname, setSurname] = useState("");
   const [mobile, setMobile] = useState("");
   const [noMobile, setNoMobile] = useState(false);
   const [sabha, setSabha] = useState("");
   const [age, setAge] = useState("");
-  const [isNewBalak, setIsNewBalak] = useState(false);
-  const [place, setPlace] = useState("");
+  const [std, setStd] = useState(""); // New State for Standard
+  const [place, setPlace] = useState(""); // Address
+  
   const [loading, setLoading] = useState(false);
   const [playingCount, setPlayingCount] = useState(0);
 
@@ -64,6 +66,13 @@ const RegistrationPage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Effect to clear address if Sabha is not "New Entry"
+  useEffect(() => {
+    if (sabha !== "New Entry") {
+      setPlace("");
+    }
+  }, [sabha]);
+
   const handleOtpSubmit = () => {
     if (otp === OTP_PASSWORD) {
       localStorage.setItem("registrationPassword", OTP_PASSWORD);
@@ -87,10 +96,10 @@ const RegistrationPage = () => {
     setImagePreview(null);
   };
 
-  // Logic for Instant Addition (Optimistic Update)
   const handleSubmit = async () => {
-    if (!balakName || !surname || !sabha || !age) {
-      toast.error("Please fill all Details!");
+    // Validation
+    if (!balakName || !surname || !sabha || !age || !std) {
+      toast.error("Please fill all Details (Name, Sabha, Age, Std)!");
       return;
     }
 
@@ -105,20 +114,18 @@ const RegistrationPage = () => {
       }
     }
 
-    if (isNewBalak && !place) {
-      toast.error("Please enter Address for New Balak!");
+    if (sabha === "New Entry" && !place) {
+      toast.error("Please enter Address for New Entry!");
       return;
     }
 
     // --- START OPTIMISTIC UPDATE ---
-    // 1. Instantly increase the count locally
     const previousCount = playingCount;
     setPlayingCount((prev) => prev + 1);
 
-    // 2. Capture form data to clear the UI immediately
     const tempBalakName = balakName;
     
-    // 3. Clear UI instantly
+    // Clear UI instantly
     setImage(null);
     setImagePreview(null);
     setBalakName("");
@@ -127,22 +134,21 @@ const RegistrationPage = () => {
     setNoMobile(false);
     setSabha("");
     setAge("");
-    setIsNewBalak(false);
+    setStd(""); // Clear Std
     setPlace("");
     
-    // 4. Show success toast instantly
     toast.success(`${tempBalakName} registered successfully 🏅`);
     // --- END OPTIMISTIC UPDATE ---
 
-    // Now handle the actual server request in the background
     const formData = new FormData();
     formData.append("image", image);
     formData.append("firstName", tempBalakName);
     formData.append("lastName", surname);
     formData.append("age", age);
+    formData.append("std", std); // Append Std
     formData.append("sabha", sabha);
     formData.append("mobile", noMobile ? "" : mobile);
-    formData.append("address", isNewBalak ? place : "");
+    formData.append("address", sabha === "New Entry" ? place : "");
 
     try {
       const res = await fetch("/api/balak/add", {
@@ -153,41 +159,36 @@ const RegistrationPage = () => {
       if (!res.ok) {
         throw new Error("Server error");
       }
-      // If server is okay, we do nothing because the UI is already updated.
     } catch (error) {
-      // ROLLBACK: If background request fails, revert the count and notify
       setPlayingCount(previousCount);
-      toast.error(`Failed to sync ${tempBalakName} to server. Please check connection.`);
+      toast.error(`Failed to sync ${tempBalakName} to server.`);
     }
   };
 
   if (!authorized) {
     return (
-      <>
-        <Toaster richColors position="bottom-right" />
-        <Dialog open={!authorized} onOpenChange={(open) => !open && router.push("/")}>
-          <DialogContent className="sm:max-w-sm">
-            <DialogHeader>
-              <DialogTitle className="text-center text-lg font-semibold">
-                Enter 6-digit Password
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <Input
-                type="text"
-                maxLength={6}
-                placeholder="Enter Password"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/, ""))}
-                className="text-center text-lg"
-              />
-              <Button onClick={handleOtpSubmit} className="w-full">
-                Go to Registration
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </>
+      <Dialog open={!authorized} onOpenChange={(open) => !open && router.push("/")}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-semibold">
+              Enter 6-digit Password
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <Input
+              type="text"
+              maxLength={6}
+              placeholder="Enter Password"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/, ""))}
+              className="text-center text-lg"
+            />
+            <Button onClick={handleOtpSubmit} className="w-full">
+              Go to Registration
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -195,15 +196,7 @@ const RegistrationPage = () => {
     <div className="min-h-screen flex flex-col gap-10 bg-muted/40 p-8">
       <Link href={"/"}>
           <Button className={"flex items-center justify-center gap-1 mb-4"}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#FFFFFF"
-            >
-              <path d="m314-440 114 114q12 12 11.5 28T428-270q-12 12-28.5 12.5T371-269L188-452q-12-12-12-28t12-28l183-183q12-12 28.5-11.5T428-690q11 12 11.5 28T428-634L314-520h446q17 0 28.5 11.5T800-480q0 17-11.5 28.5T760-440H314Z" />
-            </svg>{" "}
+            {/* SVG Icon */}
             Back to Home
           </Button>
         </Link>
@@ -221,6 +214,7 @@ const RegistrationPage = () => {
 
       <div className="font-medium w-full max-w-lg mx-auto">
         <div className="space-y-5">
+          {/* Photo Upload */}
           <div className="space-y-3">
             <Label>Balak Photo</Label>
             <Input type="file" accept="image/*" capture="environment" onChange={handleImageChange} />
@@ -232,6 +226,7 @@ const RegistrationPage = () => {
             )}
           </div>
 
+          {/* Name Fields */}
           <div className="flex items-center justify-between gap-5">
             <div className="space-y-3 w-full">
               <Label>Balak Name</Label>
@@ -243,18 +238,35 @@ const RegistrationPage = () => {
             </div>
           </div>
 
-          <div className="flex gap-6 flex-wrap">
+          {/* Dropdowns: Age, Std, Sabha */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-3">
               <Label>Age</Label>
               <Select value={age} onValueChange={setAge}>
-                <SelectTrigger className="w-[120px]"><SelectValue placeholder="Age" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Age" /></SelectTrigger>
                 <SelectContent>{[...Array(18)].map((_, i) => (<SelectItem key={i+1} value={(i+1).toString()}>{i+1}</SelectItem>))}</SelectContent>
               </Select>
             </div>
+
             <div className="space-y-3">
+              <Label>Std</Label>
+              <Select value={std} onValueChange={setStd}>
+                <SelectTrigger><SelectValue placeholder="Select Std" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Playgroup">Playgroup</SelectItem>
+                  <SelectItem value="JKG">JKG</SelectItem>
+                  <SelectItem value="SKG">SKG</SelectItem>
+                  {[...Array(8)].map((_, i) => (
+                    <SelectItem key={i + 1} value={(i + 1).toString()}>{i + 1}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3 col-span-2">
               <Label>BalSabha</Label>
               <Select value={sabha} onValueChange={setSabha}>
-                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Select Mandal" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Select Mandal" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Sardarkunj">Sardarkunj</SelectItem>
                   <SelectItem value="Akshar Colony">Akshar Colony</SelectItem>
@@ -264,17 +276,26 @@ const RegistrationPage = () => {
                   <SelectItem value="Gheekanta">Gheekanta</SelectItem>
                   <SelectItem value="Vadigam">Vadigam</SelectItem>
                   <SelectItem value="Shivshakti">Shivshakti</SelectItem>
-                  <SelectItem value="None">None</SelectItem>
+                  <SelectItem value="New Entry">New Entry</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
+          {/* Address Logic: Enabled only if Sabha is New Entry */}
           <div className="space-y-2">
-            <div className="flex items-center gap-1"><Label>New Balak</Label><Switch checked={isNewBalak} onCheckedChange={(checked) => {setIsNewBalak(checked); if(!checked) setPlace("");}} /></div>
-            <Input placeholder="Enter Address (Short)" value={place} disabled={!isNewBalak} onChange={(e) => setPlace(e.target.value)} />
+             <Label className={sabha === "New Entry" ? "text-foreground" : "text-muted-foreground"}>
+               Address {sabha !== "New Entry" && "(Select 'New Entry' to enable)"}
+             </Label>
+            <Input 
+              placeholder="Enter Address" 
+              value={place} 
+              disabled={sabha !== "New Entry"} 
+              onChange={(e) => setPlace(e.target.value)} 
+            />
           </div>
 
+          {/* Mobile Number */}
           <div className="space-y-3">
             <Label>Mobile Number</Label>
             <Input type="tel" placeholder="Enter mobile number" value={mobile} disabled={noMobile} onChange={(e) => setMobile(e.target.value)} />

@@ -15,11 +15,13 @@ export async function POST(req) {
     const firstName = formData.get("firstName");
     const lastName = formData.get("lastName");
     const age = Number(formData.get("age"));
+    const std = formData.get("std"); // Get std
     const sabha = formData.get("sabha");
     const mobile = formData.get("mobile") || "";
     const address = formData.get("address") || "";
 
-    if (!file || !firstName || !lastName || !age || !sabha) {
+    // Added std to validation check
+    if (!file || !firstName || !lastName || !age || !sabha || !std) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -54,6 +56,7 @@ export async function POST(req) {
       firstName,
       lastName,
       age,
+      std,
       sabha,
       mobile,
       address,
