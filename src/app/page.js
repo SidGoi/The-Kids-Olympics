@@ -1,11 +1,27 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import KidButton from "@/components/ui/KidButton";
 import Image from "next/image";
 
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const RootPage = () => {
+  const [playingCount, setPlayingCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = () => {
+      fetch("/api/balak/count")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setPlayingCount(data.totalKids);
+          }
+        });
+    };
+    fetchCount();
+  }, []);
+
   return (
     <div className="min-h-screen px-8 py-6 font-primary">
       <header className="w-full flex items-center justify-between">
@@ -29,7 +45,8 @@ const RootPage = () => {
         </h1>
 
         <p className="text-lg mt-1">
-          Currently <span className="text-green-800">67</span> Kids are Playing!
+          Currently <span className="text-green-800">{playingCount}</span> Kids
+          are Playing!
         </p>
 
         <div className="flex items-center mt-3 justify-center scale-90 gap-2">
