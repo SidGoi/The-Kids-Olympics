@@ -4,7 +4,6 @@ import { notFound, useParams } from "next/navigation";
 import initialGames from "@/data/Games";
 import GameCard from "@/components/ui/GameCard";
 import { Spinner } from "@/components/ui/spinner";
-// 1. Import Search and X icons
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -41,9 +40,16 @@ export default function GamePage() {
 
   useEffect(() => {
     fetchKids();
+    // Live update every 1.2 seconds
     const interval = setInterval(fetchKids, 1200);
     return () => clearInterval(interval);
   }, []);
+
+  // --- Calculate Live Played Count ---
+  const playedCount = kids.reduce((count, kid) => {
+    const gameData = kid.games?.find((g) => g.name === gameInfo.name);
+    return gameData?.played ? count + 1 : count;
+  }, 0);
 
   const filteredKids = kids.filter((kid) => {
     const fullName = `${kid.firstName} ${kid.lastName}`.toLowerCase();
@@ -61,25 +67,32 @@ export default function GamePage() {
     );
   }
 
-  return ( 
+  return (
     <div className="min-h-screen font-primary bg-[#FCF9EA] px-6 py-10 md:p-12 flex flex-col">
-     <Link href={"/games-dashboard"}>
-          <Button className={"flex items-center justify-center gap-1 mb-6"}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#FFFFFF"
-            >
-              <path d="m314-440 114 114q12 12 11.5 28T428-270q-12 12-28.5 12.5T371-269L188-452q-12-12-12-28t12-28l183-183q12-12 28.5-11.5T428-690q11 12 11.5 28T428-634L314-520h446q17 0 28.5 11.5T800-480q0 17-11.5 28.5T760-440H314Z" />
-            </svg>{" "}
-            Back to Games
-          </Button>
-        </Link>
-      <h1 className="text-4xl md:text-5xl font-black mb-5 uppercase tracking-tight text-primary">
+      <Link href={"/games-dashboard"}>
+        <Button className={"flex items-center justify-center gap-1 mb-6"}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="#FFFFFF"
+          >
+            <path d="m314-440 114 114q12 12 11.5 28T428-270q-12 12-28.5 12.5T371-269L188-452q-12-12-12-28t12-28l183-183q12-12 28.5-11.5T428-690q11 12 11.5 28T428-634L314-520h446q17 0 28.5 11.5T800-480q0 17-11.5 28.5T760-440H314Z" />
+          </svg>{" "}
+          Back to Games
+        </Button>
+      </Link>
+      
+      {/* Title */}
+      <h1 className="text-4xl md:text-5xl font-black mb-2 uppercase tracking-tight text-primary">
         {gameInfo.name}
       </h1>
+
+      {/* --- LIVE COUNT LINE --- */}
+      <p className="text-lg md:text-xl font-bold text-slate-600 mb-6">
+        {playedCount} Kids Played {gameInfo.name} till now!
+      </p>
 
       {/* --- Search Section --- */}
       <div className="w-full max-w-2xl mb-6 sticky top-4 z-20">
@@ -94,7 +107,6 @@ export default function GamePage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-12 py-3 bg-white border-2 border-pink-100 text-slate-700 rounded-full focus:outline-none focus:border-pink-400 focus:ring-4 focus:ring-pink-100 transition-all shadow-sm placeholder:text-pink-200 font-bold"
           />
-          {/* --- Clear Button ("X") --- */}
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
