@@ -271,7 +271,11 @@ const KidsPage = () => {
                     )}
                   </div>
                   <div className="text-[14px] font-black text-pink-600 mt-1">
-                    Score: {kid.totalScore} 🏆
+                    {kid.address && kid.address.trim() !== "" ? (
+                      <span className="capitalize">📍 {kid.address}</span>
+                    ) : (
+                      <span>Score: {kid.totalScore} 🏆</span>
+                    )}
                   </div>
                 </div>
               </div>

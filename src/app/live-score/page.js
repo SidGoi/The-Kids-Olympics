@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import confetti from "canvas-confetti"; // ✅ Import confetti
+import confetti from "canvas-confetti";
+import toast, { Toaster } from "react-hot-toast"; // ✅ 1. Import Toast
 import {
   motion,
   AnimatePresence,
@@ -31,23 +32,16 @@ export default function LeaderboardPage() {
   const prevScores = useRef({});
   const coinAudioRef = useRef(null);
 
-  // ✅ Confetti Burst Helper
   const triggerConfetti = () => {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
     const randomInRange = (min, max) => Math.random() * (max - min) + min;
 
-    const interval = setInterval(function() {
+    const interval = setInterval(function () {
       const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
+      if (timeLeft <= 0) return clearInterval(interval);
       const particleCount = 50 * (timeLeft / duration);
-      // since particles fall down, start a bit higher than random
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
@@ -61,7 +55,7 @@ export default function LeaderboardPage() {
 
   const playCoinSound = () => {
     if (coinAudioRef.current) {
-      const soundClone = coinAudioRef.current.cloneNode(); 
+      const soundClone = coinAudioRef.current.cloneNode();
       soundClone.volume = 0.6;
       soundClone.play().catch(() => {});
     }
@@ -69,7 +63,7 @@ export default function LeaderboardPage() {
 
   const playSuccessSound = () => {
     const audio = new Audio("/success.mp3");
-    audio.volume = 0.6; 
+    audio.volume = 0.6;
     audio.play().catch((err) => console.log("Audio autoplay blocked:", err));
   };
 
@@ -92,14 +86,55 @@ export default function LeaderboardPage() {
       if (json.success) {
         const newKidsData = json.kids;
         let globalScoreIncreased = false;
-        const currentPoppers = []; 
+        const currentPoppers = [];
 
         newKidsData.forEach((kid) => {
           const oldScore = prevScores.current[kid._id];
+
+          // ✅ 2. Toast Logic Check
+          // We check if oldScore is NOT undefined (to skip initial load toasts)
           if (oldScore !== undefined && kid.totalScore > oldScore) {
             globalScoreIncreased = true;
-            currentPoppers.push(kid._id); 
+            currentPoppers.push(kid._id);
+            
+            // Calculate the specific gain (e.g., +50)
+            const diff = kid.totalScore - oldScore;
+
+            // ✅ 3. Trigger the Custom Toast
+            toast.custom((t) => (
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.5 }}
+                className={`${
+                  t.visible ? 'animate-enter' : 'animate-leave'
+                } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+              >
+                <div className="flex-1 w-0 p-4">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 pt-0.5">
+                      {/* Using the Kid's actual image in the toast */}
+                      <img
+                        className="h-10 w-10 rounded-full object-cover border border-slate-200"
+                        src={kid.pictureUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"}
+                        alt=""
+                      />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <p className="text-sm font-black text-slate-800">
+                        {kid.firstName}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500 font-medium">
+                        Got <span className="text-yellow-600 font-bold">+{diff} Stars!</span> ⭐  
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ), { duration: 2000 });
           }
+
+          // Update Ref
           prevScores.current[kid._id] = kid.totalScore;
         });
 
@@ -126,7 +161,6 @@ export default function LeaderboardPage() {
     }
   };
 
-  // ✅ Detect new leader and fire confetti
   useEffect(() => {
     if (kids.length > 0) {
       const currentLeader = kids[0];
@@ -138,7 +172,7 @@ export default function LeaderboardPage() {
         speakAnnouncement(`${currentLeader.firstName} is Leading the Game!`);
         lastLeaderId.current = currentLeader._id;
         playSuccessSound();
-        triggerConfetti(); // 🎊 Fire confetti!
+        triggerConfetti();
       }
     }
   }, [kids]);
@@ -172,9 +206,13 @@ export default function LeaderboardPage() {
 
   return (
     <div className="font-primary h-screen cursor-pointer text-slate-800 font-sans p-4 md:p-8" onClick={() => { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); const silent = new Audio(); silent.play().catch(() => {}); }}>
+      {/* ✅ 4. Add the Toaster Component here */}
+      <Toaster position="top-right" reverseOrder={false} gutter={8} />
+
       <Image src={"/fairbg.jpg"} alt="bgImage" fill className="h-screen w-screen object-cover fixed top-0 left-0 -z-10" />
 
       <div className="max-w-4xl mx-auto border-2 border-slate-200 bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden relative flex flex-col h-[90vh]">
+        {/* ... (Existing UI Code remains exactly the same below here) ... */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-pink-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
 
