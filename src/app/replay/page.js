@@ -3,27 +3,16 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import Link from "next/link";
-// ✅ Import Search and X icons
-import { Search, X } from "lucide-react";
+import { Search, X, CheckCircle, ListTodo } from "lucide-react"; // Added Icons
+import KidButton from "@/components/ui/KidButton";
 
 export default function ReplayPage() {
   const [kids, setKids] = useState([]);
   const [selectedKid, setSelectedKid] = useState(null);
-  const [selectedGame, setSelectedGame] = useState("");
-  const [loading, setLoading] = useState(false);
   const [loadingAll, setLoadingAll] = useState(false);
-  const [searchTerm, setSearchTerm] = useState(""); // ✅ Search state
-
-  // ✅ State to control the Custom UI Alertbox
+  const [searchTerm, setSearchTerm] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
 
   // Fetch kids
@@ -35,45 +24,18 @@ export default function ReplayPage() {
       });
   }, []);
 
-  // ✅ Filter kids based on search
+  // Filter kids based on search
   const filteredKids = kids.filter((kid) => {
     const fullName = `${kid.firstName} ${kid.lastName}`.toLowerCase();
     const search = searchTerm.toLowerCase();
     return fullName.includes(search);
   });
 
-  // Handle Single Replay
-  const handleReplay = async () => {
-    if (!selectedKid || !selectedGame) {
-      toast.error("Please select kid and game");
-      return;
-    }
-
-    setLoading(true);
-
-    const res = await fetch("/api/game/replay", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        kidId: selectedKid._id,
-        gameName: selectedGame,
-      }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (data.success) {
-      toast.success("Game replay enabled 🎮");
-      setSelectedGame("");
-    } else {
-      toast.error(data.message || "Something went wrong");
-    }
-  };
-
-  // ✅ Actual logic for Replay All
+  // Logic for Replay All
   const executeReplayAll = async () => {
-    setShowConfirm(false); // Close the custom alertbox
+    if (!selectedKid) return;
+
+    setShowConfirm(false);
     setLoadingAll(true);
 
     const res = await fetch("/api/game/replay-all", {
@@ -89,14 +51,28 @@ export default function ReplayPage() {
 
     if (data.success) {
       toast.success("All games reset successfully! 🔄");
-      setSelectedGame("");
+      // Update local state to reflect changes immediately
+      const updatedKid = {
+        ...selectedKid,
+        games: selectedKid.games.map((g) => ({ ...g, played: false })),
+      };
+      setSelectedKid(updatedKid);
     } else {
       toast.error(data.message || "Something went wrong");
     }
   };
 
+  // Helper: Get Unplayed Games
+  const getUnplayedGames = () => {
+    if (!selectedKid) return [];
+    return selectedKid.games.filter((game) => !game.played);
+  };
+
+  const unplayedGames = getUnplayedGames();
+  const isAllPlayed = selectedKid && unplayedGames.length === 0;
+
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-6 relative">
+    <div className="p-6 max-w-xl mx-auto space-y-6 relative min-h-screen">
       {/* 🛑 Custom UI Alertbox Overlay */}
       {showConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -105,9 +81,13 @@ export default function ReplayPage() {
               <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">⚠️</span>
               </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">Are you sure?</h3>
+              <h3 className="text-xl font-black text-slate-900 mb-2">
+                Are you sure?
+              </h3>
               <p className="text-slate-500 mb-8 leading-relaxed">
-                This will reset <span className="font-bold text-red-600">ALL</span> games for <br />
+                This will reset{" "}
+                <span className="font-bold text-red-600">ALL</span> games for{" "}
+                <br />
                 <span className="font-bold text-slate-800">
                   {selectedKid?.firstName} {selectedKid?.lastName}
                 </span>
@@ -179,7 +159,7 @@ export default function ReplayPage() {
         </div>
       </div>
 
-      {/* Kid Selection based on Search */}
+      {/* Kid Selection Dropdown List */}
       {searchTerm && !selectedKid && (
         <div className="bg-white border border-pink-100 rounded-2xl shadow-lg max-h-60 overflow-y-auto z-30">
           {filteredKids.length > 0 ? (
@@ -188,7 +168,7 @@ export default function ReplayPage() {
                 key={kid._id}
                 onClick={() => {
                   setSelectedKid(kid);
-                  setSearchTerm(""); // Clear search once selected
+                  setSearchTerm("");
                 }}
                 className="p-3 hover:bg-pink-50 cursor-pointer border-b border-pink-50 last:border-0 font-medium text-slate-700"
               >
@@ -196,14 +176,16 @@ export default function ReplayPage() {
               </div>
             ))
           ) : (
-            <div className="p-3 text-slate-400 text-center">No results found</div>
+            <div className="p-3 text-slate-400 text-center">
+              No results found
+            </div>
           )}
         </div>
       )}
 
-      {/* Kid Card */}
+      {/* Selected Kid Card */}
       {selectedKid && (
-        <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow border border-pink-50">
+        <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow border border-pink-50 animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-center gap-4">
             <Image
               src={
@@ -212,82 +194,96 @@ export default function ReplayPage() {
               }
               width={60}
               height={60}
-              className="rounded-lg"
+              className="rounded-lg bg-slate-100"
               alt={selectedKid.firstName}
             />
             <div>
-              <p className="font-bold text-slate-800">
+              <p className="font-bold text-slate-800 text-lg">
                 {selectedKid.firstName} {selectedKid.lastName}
               </p>
-              <p className="text-sm text-gray-500">Selected</p>
+              <p className="text-sm text-gray-500">
+                {isAllPlayed ? (
+                  <span className="text-green-600 flex items-center gap-1 font-medium">
+                    <CheckCircle className="w-4 h-4" /> All Games Played
+                  </span>
+                ) : (
+                  <span className="text-orange-500 flex items-center gap-1 font-medium">
+                    <ListTodo className="w-4 h-4" /> {unplayedGames.length}{" "}
+                    Games Remaining
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-          {/* ✅ Button to clear selection and search again */}
           <button
             onClick={() => {
               setSelectedKid(null);
-              setSelectedGame("");
             }}
-            className="text-pink-400 hover:text-pink-600 font-bold text-xs uppercase tracking-widest"
+            className="text-pink-400 hover:text-pink-600 font-bold text-xs uppercase tracking-widest px-3 py-2 hover:bg-pink-50 rounded-lg transition-colors"
           >
             Change
           </button>
         </div>
       )}
 
-      {/* Game Select */}
-      <Select
-        onValueChange={setSelectedGame}
-        disabled={!selectedKid}
-        value={selectedGame}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Select Single Game" />
-        </SelectTrigger>
-        <SelectContent>
-          {selectedKid?.games.map((game) => (
-            <SelectItem
-              key={game.name}
-              value={game.name}
-              disabled={!game.played}
-            >
-              {game.name} {game.played ? "🔁" : "Already Available"}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {/* --- Conditional Logic Section --- */}
+      {selectedKid && (
+        <div className="pt-4">
+          {isAllPlayed ? (
+            // ✅ CASE 1: All Games Played -> Show Replay All Button
+            <div className="space-y-4 animate-in zoom-in duration-300">
+              <div className="bg-green-50 border border-green-200 p-4 rounded-xl text-center text-green-800">
+                <p className="font-medium">
+                  🎉 Great job! This kid has completed all games.
+                </p>
+                <p className="text-sm opacity-80 mt-1">
+                  You can now reset all games to play again.
+                </p>
+              </div>
 
-      <div className="space-y-3 pt-4">
-        {/* Single Replay Button */}
-        <Button
-          onClick={handleReplay}
-          className="w-full"
-          disabled={loading || !selectedGame || loadingAll}
-        >
-          {loading ? "Processing..." : "Replay Single Game"}
-        </Button>
+              <div disabled={loadingAll} onClick={() => setShowConfirm(true)}>
+                <KidButton
+                  label={
+                    loadingAll ? "Resetting All..." : "🔄 Replay All Games"
+                  }
+                  color="#FF5555"
+                />
+              </div>
+            </div>
+          ) : (
+            // ✅ CASE 2: Games Remaining -> Show List of Remaining Games
+            <div className="space-y-4 animate-in zoom-in duration-300">
+              <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl text-center text-orange-800 mb-4">
+                <p className="font-bold text-lg">
+                  ⚠️ Finish these games first!
+                </p>
+                <p className="text-sm opacity-80">
+                  Replay option will appear once all games are done.
+                </p>
+              </div>
 
-        <div className="relative flex py-2 items-center">
-          <div className="flex-grow border-t border-gray-200"></div>
-          <span className="flex-shrink-0 mx-4 text-gray-400 text-xs uppercase">
-            OR
-          </span>
-          <div className="flex-grow border-t border-gray-200"></div>
+              <h3 className="font-bold text-slate-700 ml-1 mb-2">
+                Remaining Games:
+              </h3>
+              <div className="grid gap-3">
+                {unplayedGames.map((game) => (
+                  <div
+                    key={game.name}
+                    className="bg-white p-4 rounded-xl border-l-4 border-orange-400 shadow-sm flex items-center justify-between"
+                  >
+                    <span className="font-bold text-slate-700">
+                      {game.name}
+                    </span>
+                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-bold uppercase">
+                      Pending
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* ✅ Replay All Button - Now triggers Custom Alertbox */}
-        <Button
-          onClick={() => {
-            if (!selectedKid) return toast.error("Please select a kid first");
-            setShowConfirm(true);
-          }}
-          variant="destructive"
-          className="w-full"
-          disabled={loadingAll || !selectedKid || loading}
-        >
-          {loadingAll ? "Resetting All..." : " Replay All Games"}
-        </Button>
-      </div>
+      )}
     </div>
   );
 }
