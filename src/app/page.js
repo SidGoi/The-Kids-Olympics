@@ -4,10 +4,7 @@ import React from "react";
 
 const RootPage = () => {
   return (
-    <div className="min-h-screen px-20 py-10">
-
-  
-
+    <div className="min-h-screen">
       <h1 className="themefont text-4xl font-black">The Kids Olympics</h1>
       <div className="grid grid-cols-2 gap-2 px-10">
         <Link href={"/registration"} className="w-full">
