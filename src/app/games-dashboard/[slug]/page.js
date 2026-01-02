@@ -6,6 +6,8 @@ import GameCard from "@/components/ui/GameCard";
 import { Spinner } from "@/components/ui/spinner";
 // 1. Import Search and X icons
 import { Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function GamePage() {
   const params = useParams();
@@ -61,6 +63,20 @@ export default function GamePage() {
 
   return ( 
     <div className="min-h-screen font-primary bg-[#FCF9EA] px-6 py-10 md:p-12 flex flex-col">
+     <Link href={"/games-dashboard"}>
+          <Button className={"flex items-center justify-center gap-1 mb-6"}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#FFFFFF"
+            >
+              <path d="m314-440 114 114q12 12 11.5 28T428-270q-12 12-28.5 12.5T371-269L188-452q-12-12-12-28t12-28l183-183q12-12 28.5-11.5T428-690q11 12 11.5 28T428-634L314-520h446q17 0 28.5 11.5T800-480q0 17-11.5 28.5T760-440H314Z" />
+            </svg>{" "}
+            Back to Games
+          </Button>
+        </Link>
       <h1 className="text-4xl md:text-5xl font-black mb-5 uppercase tracking-tight text-primary">
         {gameInfo.name}
       </h1>
