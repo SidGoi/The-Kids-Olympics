@@ -135,3 +135,7 @@ export default function GameCard({ kidId, userName, userImage, sabhaName, gameNa
     </div>
   );
 } 
+
+
+
+
