@@ -29,7 +29,7 @@ import {
 const SabhaDistributionChart = ({ data = [] }) => {
   if (!data || data.length === 0) return null;
 
-  // ✅ Dynamic Height: 60px per bar + 50px buffer. 
+  // ✅ Dynamic Height: 60px per bar + 50px buffer.
   const chartHeight = data.length * 60 + 50;
 
   return (
@@ -46,10 +46,14 @@ const SabhaDistributionChart = ({ data = [] }) => {
               data={data}
               margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
-              
+              <CartesianGrid
+                strokeDasharray="3 3"
+                horizontal={false}
+                stroke="#f0f0f0"
+              />
+
               <XAxis type="number" hide />
-              
+
               <YAxis
                 dataKey="name"
                 type="category"
@@ -58,7 +62,7 @@ const SabhaDistributionChart = ({ data = [] }) => {
                 axisLine={false}
                 tickLine={false}
               />
-              
+
               <Tooltip
                 cursor={{ fill: "#FFF5F7" }}
                 contentStyle={{
@@ -68,22 +72,22 @@ const SabhaDistributionChart = ({ data = [] }) => {
                   fontWeight: "bold",
                 }}
               />
-              
-              <Bar 
-                dataKey="value" 
-                radius={[0, 10, 10, 0]} 
+
+              <Bar
+                dataKey="value"
+                radius={[0, 10, 10, 0]}
                 barSize={28}
-                isAnimationActive={false} 
+                isAnimationActive={false}
               >
-                <LabelList 
-                  dataKey="value" 
-                  position="insideRight" 
-                  fill="#FFFFFF" 
-                  fontWeight="900" 
-                  fontSize={12} 
+                <LabelList
+                  dataKey="value"
+                  position="insideRight"
+                  fill="#FFFFFF"
+                  fontWeight="900"
+                  fontSize={12}
                   offset={10}
                 />
-                
+
                 {data.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
@@ -107,10 +111,14 @@ const KidsPage = () => {
 
   const fetchKids = useCallback(async () => {
     try {
-      const res = await fetch(`/api/balak/all?t=${Date.now()}`, { cache: "no-store" });
+      const res = await fetch(`/api/balak/all?t=${Date.now()}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (data.success) {
-        const sortedKids = data.kids.sort((a, b) => b.totalScore - a.totalScore);
+        const sortedKids = data.kids.sort(
+          (a, b) => b.totalScore - a.totalScore
+        );
         setKids(sortedKids);
       }
     } catch (error) {
@@ -153,7 +161,12 @@ const KidsPage = () => {
     return kids.filter((k) => k.sabha === selectedSabha);
   }, [kids, selectedSabha]);
 
-  if (loading) return <div className="flex justify-center mt-20"><Spinner /></div>;
+  if (loading)
+    return (
+      <div className="flex justify-center mt-20">
+        <Spinner />
+      </div>
+    );
 
   return (
     <div className="p-4 md:p-8 bg-[#FFF5F7] min-h-screen font-sans text-slate-800">
@@ -164,7 +177,13 @@ const KidsPage = () => {
           </h1>
           <Link href="/">
             <Button className="flex items-center justify-center gap-1 bg-pink-600 hover:bg-pink-700 rounded-xl px-6 font-bold shadow-lg shadow-pink-200">
-              <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#FFFFFF">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="20px"
+                viewBox="0 -960 960 960"
+                width="20px"
+                fill="#FFFFFF"
+              >
                 <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
               </svg>
               BACK HOME
@@ -225,7 +244,10 @@ const KidsPage = () => {
               <div className="p-5 flex items-center gap-4">
                 <div className="relative w-20 h-20 rounded-[1.5rem] overflow-hidden border-4 border-pink-50 flex-shrink-0 shadow-inner">
                   <Image
-                    src={kid.pictureUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"}
+                    src={
+                      kid.pictureUrl ||
+                      "https://api.dicebear.com/7.x/adventurer/svg?seed=fallback"
+                    }
                     alt={kid.firstName}
                     fill
                     className="object-cover"
@@ -237,7 +259,16 @@ const KidsPage = () => {
                   </h2>
                   <div className="flex items-center gap-2 mt-0.5 text-pink-500 font-bold text-sm">
                     <Smartphone size={14} />
-                    <span>{kid.mobile || "No Number"}</span>
+                    {kid.mobile ? (
+                      <a
+                        href={`tel:${kid.mobile}`}
+                        className="hover:text-pink-700 hover:underline transition-colors"
+                      >
+                        {kid.mobile}
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">No Number</span>
+                    )}
                   </div>
                   <div className="text-[14px] font-black text-pink-600 mt-1">
                     Score: {kid.totalScore} 🏆
